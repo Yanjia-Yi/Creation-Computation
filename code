@@ -1,0 +1,149 @@
+#include <Servo.h>
+
+int spin1 = 2;              //Pin that continuousservo1 attached to
+int spin2 = 3;              //Pin that continuousservo2 attached to
+int spin3 = 4;              //Pin that continuousservo3 attached to
+int LedPin = 5;           //Pin that led string attached to
+
+int moveIncrement = 2;    // how much to move the motor each cycle 
+
+int timer = 100;     //bink time
+
+Servo cntServo1;
+Servo cntServo2;
+Servo cntServo3;
+
+int lightSensorPin_1 = A0;
+int lightSensorVal_1;
+int lightSensorThreshold_1;
+
+int lightSensorPin_2 = A1;
+int lightSensorVal_2;
+int lightSensorThreshold_2;
+
+int lightSensorPin_3 = A2;
+int lightSensorVal_3;
+int lightSensorThreshold_3;
+
+// int lightSensorPin_4 = A3;
+// int lightSensorVal_4;
+// int lightSensorThreshold_4;
+
+
+int lightDifference_1 = 100;
+
+//int moveMin = 50;
+//int moveMax = 5; 
+
+// 0 = Not covered , 1 = Covered
+int objectState_1 = 0;
+int objectState_2 = 0;
+int objectState_3 = 0;
+int objectState_4 = 0;
+//int objectState_5 = 0;
+
+void setup() {
+  cntServo1.attach(spin1);
+  cntServo2.attach(spin2);
+  cntServo3.attach(spin3);
+  Serial.begin(9600);
+//read the sensor val at Startup
+  lightSensorThreshold_1 = analogRead(lightSensorPin_1) - lightDifference_1;
+  lightSensorThreshold_2 = analogRead(lightSensorPin_2) - lightDifference_1;
+  lightSensorThreshold_3 = analogRead(lightSensorPin_3) - lightDifference_1;
+  //lightSensorThreshold_4 = analogRead(lightSensorPin_4) - lightDifference_1;
+}
+
+//1=coverd; 0=uncover
+int determineState(int lightLevel, int threshold)
+{
+  int state;
+  if(lightLevel<=threshold)
+  { 
+    state = 1;
+  }
+  else
+  {
+    state = 0;
+  }
+return state;
+}
+
+void loop() {
+//determine the state  
+//read sensor1 value
+  lightSensorVal_1 = analogRead(lightSensorPin_1);
+  objectState_1 = determineState(lightSensorVal_1, lightSensorThreshold_1);
+
+//read sensor2 value
+  lightSensorVal_2 = analogRead(lightSensorPin_2);
+  objectState_2 = determineState(lightSensorVal_2, lightSensorThreshold_2);
+
+//read sensor3 value
+  lightSensorVal_3 = analogRead(lightSensorPin_3);
+  objectState_3 = determineState(lightSensorVal_3, lightSensorThreshold_3);
+
+  // //read sensor4 value
+  // lightSensorVal_4 = analogRead(lightSensorPin_4);
+  // objectState_4 = determineState(lightSensorVal_4, lightSensorThreshold_4);
+
+////////////////////////
+
+//output continuous servo1
+  if(objectState_1==1)
+  {
+    //cntServo1.write(92);
+      cntServo1.write(99);
+      delay(8500);
+      cntServo1.write(92);
+      delay(500);
+      cntServo1.write(85);
+      delay(8500);
+  }
+  if(objectState_1==0)
+  {
+    cntServo1.write(92);
+  }
+
+//output continuous servo2
+  if(objectState_2==1)
+  {
+    //cntServo1.write(92);
+      cntServo2.write(99);
+      delay(5500);
+      cntServo2.write(91);
+      delay(500);
+      cntServo2.write(85);
+      delay(5500);
+  }
+  if(objectState_2==0)
+  {
+    cntServo2.write(91);
+  }
+
+//output continuous servo3
+  if(objectState_3==1)
+  {
+    //cntServo1.write(92);
+      cntServo3.write(99);
+      delay(8500);
+      cntServo3.write(93);
+      delay(500);
+      cntServo3.write(85);
+      delay(8500);
+  }
+  if(objectState_3==0)
+  {
+    cntServo3.write(93);
+  }
+
+ 
+  }
+  // if(objectState_4==1)
+  // {
+  //   digitalWrite(LedPin, HIGH);
+  //   delay(timer);
+  //   digitalWrite(LedPin, LOW);
+  // }
+
+
