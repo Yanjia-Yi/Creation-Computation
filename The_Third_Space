@@ -27,7 +27,8 @@ let playTime; //When to play the music
 function preload() 
 {
   // Create an array of GIF file names
-  gifList = ["GIF0.gif","GIF1.gif","GIF2.gif","GIF3.gif","GIF4.gif","GIF5.gif"];
+  gifList = ["GIF0.gif","GIF1.gif","GIF2.gif","GIF3.gif","GIF4.gif","GIF5.gif",
+             "GIF6.gif","GIF7.gif","GIF8.gif","GIF9.gif","GIF10.gif","GIF11.gif"];
   gif1 = loadImage(random(gifList));  // randomly load the GIF
   musicList = ["sound0.mp3","sound1.mp3","sound2.mp3"];
   music = loadSound(random(musicList)); // randomly load the music
@@ -56,6 +57,7 @@ function mousePressed() {
   gif1 = loadImage(random(gifList));
   music = loadSound(random(musicList));
   playRandomMusic();
+   
 }
 
 function playRandomMusic() {
