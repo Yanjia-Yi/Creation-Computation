@@ -13,7 +13,7 @@ let gifList;  //Holds the city GIF image data
 let relativeHeight; // The calculated height to maintain aspect ratio of the GIF when displayed
 // Define the range of phone rotation (in degrees) we want to use
 let minXRotation = 0;      // Minimum rotation value for X-axis 
-let maxXRotation = 90;     // Maximum rotation value for X-axis 
+let maxXRotation = 60;     // Maximum rotation value for X-axis 
 let aspectRatio; //save the calculate number for the aspectratio for GIF
 let totalGIFframes; // Total frames in the GIF
 
