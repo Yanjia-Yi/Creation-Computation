@@ -1,0 +1,126 @@
+/* Creation & Computation
+Group C------The Third Space
+Ecem Ozturk, Matthew Nazarian, Xinzhou Zhang, Yanjia Yi
+
+Control the frame of a GIF with the rotation of the phone
+tilt to change the GIF
+randomly select the GIF to do rotation, and randomly play the sound effect
+*/
+
+// Declare variables
+let gif1; // Holds the selected GIF image data
+let gifList;  //Holds the city GIF image data
+let relativeHeight; // The calculated height to maintain aspect ratio of the GIF when displayed
+// Define the range of phone rotation (in degrees) we want to use
+let minXRotation = 0;      // Minimum rotation value for X-axis 
+let maxXRotation = 90;     // Maximum rotation value for X-axis 
+let aspectRatio; //save the calculate number for the aspectratio for GIF
+let totalGIFframes; // Total frames in the GIF
+
+let fontSize = 20; // Size of the font used for debug text
+
+let music; // Holds the selected music data
+let musicList; //Holds the city music data
+let playTime; //When to play the music
+
+// This function runs before setup() and is used to load GIF and Music files
+function preload() 
+{
+  // Create an array of GIF file names
+  gifList = ["GIF0.gif","GIF1.gif","GIF2.gif","GIF3.gif","GIF4.gif","GIF5.gif"];
+  gif1 = loadImage(random(gifList));  // randomly load the GIF
+  musicList = ["sound0.mp3","sound1.mp3","sound2.mp3"];
+  music = loadSound(random(musicList)); // randomly load the music
+}
+
+// Setup function runs once when the sketch starts
+function setup() 
+{
+  createCanvas(windowWidth, windowHeight); // Set canvas size to full browser window size
+  totalGIFframes = gif1.numFrames() - 1;   // Get the total number of frames in the GIF (indexed from 0) 
+  // Calculate the aspect ratio of the GIF to maintain its proportions when displaying
+  aspectRatio = gif1.height / gif1.width;
+  relativeHeight = width * aspectRatio;
+  // Set text properties for debug info
+  textAlign(CENTER, CENTER);
+  textSize(20);
+  fill(0);  
+  //set up permissions for sensor access
+  checkSensorPermissions(); //For IOS
+  playRandomMusic();
+}
+
+// This function is automatically triggered by p5.js when click screen
+// Change GIF and Music by clicking the screen
+function mousePressed() {
+  gif1 = loadImage(random(gifList));
+  music = loadSound(random(musicList));
+  playRandomMusic();
+}
+
+function playRandomMusic() {
+  // Generate a random playback time, say between 5 and 20 seconds
+  playTime = random(5, 20) * 1000; // Convert seconds to milliseconds
+  // Play music after random time
+  setTimeout(function() {
+    music.play();
+    console.log("music played");   
+    // After playback is complete, set a new random time and play again
+    music.onended(playRandomMusic);
+  }, playTime);
+}
+
+// The draw function continuously loops by default, making animations possible
+function draw() 
+{
+  background(255); // Set a white background for the canvas 
+  // Ensure the device's rotation value is within our defined range
+  let constrainedRotation = constrain(rotationX, minXRotation, maxXRotation);  
+  // Map the rotation value to a frame in the GIF
+  let gifFrame = round(map(constrainedRotation, minXRotation, maxXRotation, 0, totalGIFframes));
+  gifFrame = constrain(gifFrame, 0, totalGIFframes); // Ensure the GIF frame number is valid
+  gif1.setFrame(gifFrame); // Set the current frame of the GIF to be displayed  
+  // Display the GIF with the set frame
+  image(gif1, 0, 0, width, relativeHeight);
+}
+
+function isIOS() {
+    return [
+        'iPad Simulator',
+        'iPhone Simulator',
+        'iPod Simulator',
+        'iPad',
+        'iPhone',
+        'iPod'
+    ].includes(navigator.platform)
+    || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+}
+
+let btn;
+
+function checkSensorPermissions() {
+    if (isIOS()) {
+        btn = createButton("Request Sensor Access");
+        btn.position(windowWidth / 2 - btn.width/2, windowHeight * 0.75);
+        btn.size(200,100);
+        btn.mousePressed(requestMotionPermission);
+    } 
+}
+
+function requestMotionPermission() {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+            .then(response => {
+                if (response === 'granted') {
+                    console.log("Motion permission granted");
+                } else {
+                    console.log("Motion permission denied");
+                }
+                btn.remove();
+            })
+            .catch(error => {
+                console.error("Error requesting motion permission", error);
+                btn.remove();
+            });
+    }
+}
