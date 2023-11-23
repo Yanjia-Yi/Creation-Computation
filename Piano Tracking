@@ -1,0 +1,156 @@
+/* Creation & Computation
+Group 1011------Piano Tracking
+Vitor Fiacadori Costa, Yanjia Yi
+Reference: 'Firmata - Knight Rider Mouse Control'
+Using OpenCV to detect the face and load location information.
+Transfer it to choose which key plays, and light up the corresponding LED.
+*/
+
+//Import library
+import cc.arduino.*;
+import processing.serial.*;
+import gab.opencv.*;
+import processing.video.*;
+import java.awt.*;
+import processing.sound.*;
+Arduino arduino;
+Capture video;
+OpenCV opencv;
+
+//Declare variables
+//KH: import Sound library, declare sound files
+SoundFile Key_1;
+SoundFile Key_2;
+SoundFile Key_3;
+SoundFile Key_4;
+SoundFile Key_5;
+SoundFile Key_6;
+SoundFile Key_7;
+
+//LED pin numbers
+int[] ledPins = {2, 3, 4, 5, 6, 7, 8};
+
+int cameraIndex = 0; //Change this index to pick a different camera
+
+void setup() {
+  size(640, 480); //Size should match the video's dimensions
+
+ //KH: Load soundfiles
+  Key_1 = new SoundFile(this, "1_C.mp3");
+  Key_2 = new SoundFile(this, "2_D.mp3");
+  Key_3 = new SoundFile(this, "3_E.mp3");
+  Key_4 = new SoundFile(this, "4_F.mp3");
+  Key_5 = new SoundFile(this, "5_G.mp3");
+  Key_6 = new SoundFile(this, "6_A.mp3");
+  Key_7 = new SoundFile(this, "7_B.mp3");
+  //Camera selection logic
+  String[] cameras = Capture.list();
+  printArray(cameras);
+  if (cameras.length > 0 && cameraIndex < cameras.length) {
+    video = new Capture(this, cameras[cameraIndex]);
+  } else {
+    println("Camera index is out of bounds.");
+    exit();
+  }
+  video.start();
+  opencv = new OpenCV(this, 640, 480);
+  opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
+
+  //Initialize connection to Arduino
+  printArray(Arduino.list());
+  arduino = new Arduino(this, Arduino.list()[0], 57600);
+
+  //Set LED pins as outputs
+  for (int i = 0; i < ledPins.length; i++) {
+    arduino.pinMode(ledPins[i], Arduino.OUTPUT);
+  }
+}
+//The draw function continuously loops by default, keep playing the piano
+void draw() {
+  //Load the video frame into OpenCV
+  opencv.loadImage(video);
+  //Display the video frame
+  image(video, 0, 0);
+  //Detect faces in the video frame
+  Rectangle[] faces = opencv.detect();
+
+  int sectionWidth = width / 7; // Dynamically calculate the width of each section
+
+  //Turn off all LEDs
+  for (int i = 0; i < ledPins.length; i++) {
+    arduino.digitalWrite(ledPins[i], Arduino.LOW);
+  }
+  //Draw rectangles for each section
+  for (int i = 0; i < 7; i++) {
+    noFill(); // White color for inactive sections
+    stroke(0);
+    rect(sectionWidth * i, 0, sectionWidth, height); // Adjust height as needed
+    }
+
+  //Check if a face is detected and which section it is in
+  if (faces.length > 0) {
+    int faceX = faces[0].x + faces[0].width / 2; // Center of the first detected face
+    //Turn on the active sction
+    //Turn on the LED for the active section
+    for (int i = 0; i < 7; i++) {
+      if (faceX > sectionWidth * i && faceX < sectionWidth * (i + 1)) {
+        fill(255, 0, 0,100); // Red color for active section
+        arduino.digitalWrite(ledPins[i], Arduino.HIGH);
+      // Determine which section the face is in and play the sound
+      //KH: check to see if file is playing
+  if (Key_1.isPlaying() || Key_2.isPlaying() || Key_3.isPlaying() || Key_4.isPlaying() || Key_5.isPlaying() || Key_6.isPlaying() || Key_7.isPlaying()) {
+    println("File is playing");
+  } else {
+     //KH: only play file if none others are playing
+     //Play the sound corresponding to the active section
+    if (faceX > 0 && faceX <= sectionWidth) {
+      println("DO");
+    //KH: Rewind is not needed for Sound library
+      Key_1.play();
+    }
+    if (faceX > sectionWidth && faceX <= sectionWidth * 2) {
+      println("RE");
+      Key_2.play();
+    }
+    if (faceX > sectionWidth * 2 && faceX <= sectionWidth * 3) {
+      println("MI");
+      Key_3.play();
+    }
+    if (faceX > sectionWidth * 3 && faceX <= sectionWidth * 4) {
+      println("FA");
+      Key_4.play();
+    }
+    if (faceX > sectionWidth * 4 && faceX <= sectionWidth * 5) {
+      println("SOL");
+      Key_5.play();
+    }
+    if (faceX > sectionWidth * 5 && faceX <= sectionWidth * 6) {
+      println("LA");
+      Key_6.play();
+    }
+    if (faceX > sectionWidth * 6 && faceX <= sectionWidth * 7) {
+      println("SI");
+      Key_7.play();
+    }
+  }
+      }
+      else {
+      noFill(); //White color for inactive sections
+    }
+    noStroke();
+    rect(sectionWidth * i, 0, sectionWidth, height); // Adjust height as needed 
+
+  // Draw rectangles around detected faces
+  noFill();
+  stroke(0, 255, 0);
+  strokeWeight(3);
+  for (Rectangle face : faces) {
+    rect(face.x, face.y, face.width, face.height);
+  }
+}
+  }
+}
+
+void captureEvent(Capture c) {
+  c.read();
+}
